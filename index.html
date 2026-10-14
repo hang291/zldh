@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鱼鹤资源窝 · 游戏与软件资源分享</title>
+<meta name="description" content="鱼鹤资源窝 — MOD 整合包、Galgame、单机游戏、看漫画与看番软件，免费分享。">
+<style>
+/* ============ 双主题变量 ============ */
+:root,html[data-theme="dark"]{
+  --bg:#0d0f12;
+  --panel:#14171b;
+  --panel-2:#191d22;
+  --line:rgba(255,255,255,.075);
+  --line-soft:rgba(255,255,255,.045);
+  --txt:#ecebe6;
+  --txt-2:rgba(236,235,230,.62);
+  --txt-3:rgba(236,235,230,.36);
+  --acc:#8fceba;
+  --acc-strong:#6fc3ab;
+  --acc-dim:rgba(143,206,186,.12);
+  --acc-line:rgba(143,206,186,.32);
+  --warm:#ddb98a;
+  --warm-dim:rgba(221,185,138,.08);
+  --warm-line:rgba(221,185,138,.28);
+  --shadow:0 18px 50px rgba(0,0,0,.45);
+  --shadow-sm:0 6px 20px rgba(0,0,0,.3);
+  --nav-bg:rgba(13,15,18,.8);
+  --hero-glow:radial-gradient(circle,rgba(143,206,186,.24),transparent 62%);
+  --glow2:radial-gradient(circle,rgba(221,185,138,.13),transparent 62%);
+}
+html[data-theme="light"]{
+  --bg:#f6f5f1;
+  --panel:#ffffff;
+  --panel-2:#faf9f6;
+  --line:rgba(28,30,32,.1);
+  --line-soft:rgba(28,30,32,.055);
+  --txt:#1d2023;
+  --txt-2:rgba(29,32,35,.64);
+  --txt-3:rgba(29,32,35,.4);
+  --acc:#2e7d6a;
+  --acc-strong:#256a59;
+  --acc-dim:rgba(46,125,106,.09);
+  --acc-line:rgba(46,125,106,.32);
+  --warm:#a97c3f;
+  --warm-dim:rgba(169,124,63,.07);
+  --warm-line:rgba(169,124,63,.3);
+  --shadow:0 18px 50px rgba(29,32,35,.1);
+  --shadow-sm:0 6px 20px rgba(29,32,35,.07);
+  --nav-bg:rgba(246,245,241,.82);
+  --hero-glow:radial-gradient(circle,rgba(46,125,106,.17),transparent 62%);
+  --glow2:radial-gradient(circle,rgba(169,124,63,.11),transparent 62%);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.7;
+  transition:background-color .5s ease,color .5s ease;
+}
+::selection{background:var(--acc-dim);color:var(--acc-strong)}
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:2px solid var(--bg)}
+
+/* 背景：静态氛围光（无模糊滤镜，零开销）+ 上浮光点动画（仅 transform/opacity，GPU 友好） */
+.ambient{position:fixed;inset:0;z-index:-3;pointer-events:none;
+  background:
+    radial-gradient(52vw 52vw at 12% -8%,var(--hero-glow),transparent),
+    radial-gradient(44vw 44vw at 88% 30%,var(--glow2),transparent),
+    radial-gradient(40vw 40vw at 55% 95%,var(--hero-glow),transparent);
+  transition:background .5s}
+.floaties{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+.floaties i{position:absolute;bottom:-4vh;border-radius:50%;opacity:0;will-change:transform,opacity;
+  animation:rise linear infinite}
+@keyframes rise{
+  0%{transform:translateY(0) translateX(0);opacity:0}
+  8%{opacity:var(--o)}
+  85%{opacity:var(--o)}
+  100%{transform:translateY(-112vh) translateX(var(--sway));opacity:0}
+}
+.grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+html[data-theme="light"] .grain{opacity:.05}
+@media (prefers-reduced-motion:reduce){.floaties i{animation:none}}
+
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ease, cubic-bezier(.22,1,.36,1)),transform .8s cubic-bezier(.22,1,.36,1)}
+.reveal.in{opacity:1;transform:none}
+
+.tag{display:inline-flex;align-items:center;padding:2px 9px;border-radius:6px;font-size:11.5px;
+  background:var(--panel-2);border:1px solid var(--line-soft);color:var(--txt-2)}
+.tag.acc{color:var(--acc);border-color:var(--acc-line);background:var(--acc-dim)}
+.tag.warm{color:var(--warm);border-color:var(--warm-line);background:var(--warm-dim)}
+.mi{display:inline-flex;align-items:center;gap:5px}
+.mi svg{opacity:.7}
+.tag[data-t]{cursor:pointer;transition:border-color .25s,color .25s,background .25s}
+.tag[data-t]:hover{border-color:var(--acc-line);color:var(--acc)}
+.post{display:flex;gap:18px}
+.post-main{flex:1;min-width:0}
+.post-cover{width:132px;aspect-ratio:4/3;border-radius:11px;flex-shrink:0;display:grid;place-items:center;overflow:hidden;align-self:center}
+.post-cover span{font-size:30px;font-weight:700;color:rgba(255,255,255,.85);text-shadow:0 4px 16px rgba(0,0,0,.35)}
+/* 有封面的弹窗：去掉盒体边框（避免横线压图），封面自己带圆角 */
+.box.cover-mode{border:none}
+.m-cover{height:170px;display:grid;place-items:center;position:relative;margin:-33px 0 0;border-radius:18px 18px 0 0}
+.m-cover span{font-size:44px;font-weight:700;color:rgba(255,255,255,.9);text-shadow:0 6px 24px rgba(0,0,0,.4)}
+.copy-btn{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;border:1px solid transparent;
+  background:transparent;color:var(--acc);cursor:pointer;transition:all .25s;vertical-align:middle}
+.copy-btn:hover{border-color:var(--acc-line);background:var(--acc-dim)}
+
+/* ============ 导航 ============ */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid transparent;transition:all .4s}
+nav.scrolled{background:var(--nav-bg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-color:var(--line-soft)}
+.nav-in{max-width:1040px;margin:0 auto;padding:0 24px;height:62px;display:flex;align-items:center;gap:14px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--txt)}
+.logo-mark{width:31px;height:31px;border-radius:9px;background:var(--acc);display:grid;place-items:center;
+  font-size:14px;font-weight:700;color:var(--bg);transition:transform .4s cubic-bezier(.22,1,.36,1)}
+.logo:hover .logo-mark{transform:rotate(-8deg) scale(1.06)}
+.logo-name{font-size:16px;font-weight:600;letter-spacing:.05em}
+.nav-links{display:flex;gap:2px;margin-left:auto;margin-right:6px}
+.nav-links a{color:var(--txt-2);text-decoration:none;font-size:14px;padding:7px 13px;border-radius:99px;transition:all .3s}
+.nav-links a:hover{color:var(--txt);background:var(--acc-dim)}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--txt-2);
+  display:grid;place-items:center;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.icon-btn:hover{color:var(--acc);border-color:var(--acc-line)}
+.icon-btn svg{transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .3s}
+#themeBtn .sun,#themeBtn .moon{position:absolute;transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .35s}
+html[data-theme="dark"] #themeBtn .sun{transform:translateY(16px) rotate(90deg);opacity:0}
+html[data-theme="dark"] #themeBtn .moon{transform:none;opacity:1}
+html[data-theme="light"] #themeBtn .moon{transform:translateY(-16px) rotate(-90deg);opacity:0}
+html[data-theme="light"] #themeBtn .sun{transform:none;opacity:1}
+.nav-burger{display:none}
+
+/* ============ Hero ============ */
+.hero{padding:126px 0 0}
+.hero h1{font-size:clamp(36px,6vw,60px);font-weight:700;letter-spacing:.05em;line-height:1.18}
+.hero h1 em{font-style:normal;color:var(--acc);position:relative}
+.hero-sub{margin-top:10px;color:var(--txt-3);font-size:13px;letter-spacing:.34em}
+.hero-desc{margin-top:16px;color:var(--txt-2);font-size:14.5px;max-width:520px}
+.hero-search{margin-top:28px;max-width:540px;display:flex;align-items:center;gap:6px;padding:7px 7px 7px 20px;
+  border-radius:99px;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow-sm);
+  transition:border-color .3s,box-shadow .3s,background .5s}
+.hero-search:focus-within{border-color:var(--acc-line);box-shadow:0 0 0 4px var(--acc-dim),var(--shadow-sm)}
+.hero-search input{flex:1;background:none;border:none;outline:none;color:var(--txt);font-size:15px;font-family:inherit}
+.hero-search input::placeholder{color:var(--txt-3)}
+.hero-search button{border:none;cursor:pointer;padding:10px 22px;border-radius:99px;background:var(--acc);
+  color:var(--bg);font-weight:600;font-size:14px;font-family:inherit;transition:all .3s cubic-bezier(.22,1,.36,1)}
+.hero-search button:hover{transform:scale(1.05);background:var(--acc-strong)}
+.hero-search button:active{transform:scale(.97)}
+.hero-meta{margin-top:15px;display:flex;gap:20px;color:var(--txt-3);font-size:12.5px;letter-spacing:.05em}
+.hero-meta b{color:var(--txt-2);font-weight:600}
+
+/* ============ 进站必看 ============ */
+.must{margin-top:40px}
+.sec-label{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.sec-label .bar{width:3.5px;height:17px;border-radius:2px;background:var(--warm)}
+.sec-label h2{font-size:16.5px;font-weight:600;letter-spacing:.08em}
+.sec-label span{color:var(--txt-3);font-size:12.5px}
+.must-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:13px}
+.must-card{border:1px solid var(--warm-line);background:linear-gradient(160deg,var(--warm-dim),transparent 65%),var(--panel);
+  border-radius:16px;padding:19px 21px;cursor:pointer;transition:all .4s cubic-bezier(.22,1,.36,1)}
+.must-card:hover{transform:translateY(-3px);border-color:var(--warm);box-shadow:var(--shadow-sm)}
+.must-card h3{font-size:15.5px;font-weight:600;margin:10px 0 7px;line-height:1.55}
+.must-card p{color:var(--txt-2);font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.must-card .m-meta{margin-top:11px;color:var(--txt-3);font-size:12px;display:flex;gap:14px}
+
+/* ============ 板块分区（简单一行） ============ */
+.doors{padding:58px 0 0}
+.doors-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.door{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 10px 15px;border-radius:14px;
+  border:1px solid var(--line-soft);background:var(--panel);cursor:pointer;transition:all .35s cubic-bezier(.22,1,.36,1);text-align:center}
+.door:hover{border-color:var(--acc-line);background:var(--panel-2);transform:translateY(-3px)}
+.door svg{color:var(--acc);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.door:hover svg{transform:translateY(-2px) scale(1.08)}
+.door span{font-size:13px;font-weight:500}
+.door small{color:var(--txt-3);font-size:11px}
+
+/* ============ 信息流 ============ */
+.feed{padding:58px 0 10px}
+.feed-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+.feed-head h2{font-size:clamp(23px,3.2vw,30px);font-weight:700;letter-spacing:.04em}
+.feed-head h2 small{display:block;font-size:11px;letter-spacing:.32em;color:var(--acc);font-weight:500;margin-bottom:5px}
+.random-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 17px;border-radius:99px;border:1px dashed var(--acc-line);
+  background:transparent;color:var(--acc);font-size:13px;cursor:pointer;font-family:inherit;transition:all .3s}
+.random-btn:hover{background:var(--acc-dim)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:6px 16px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--txt-2);
+  font-size:13px;cursor:pointer;font-family:inherit;transition:all .3s}
+.chip:hover{color:var(--txt);border-color:var(--acc-line)}
+.chip.active{background:var(--acc);border-color:var(--acc);color:var(--bg);font-weight:600}
+.stream{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.post{border:1px solid var(--line-soft);background:var(--panel);border-radius:15px;
+  padding:20px 23px;cursor:pointer;transition:all .35s cubic-bezier(.22,1,.36,1);animation:cardIn .5s cubic-bezier(.22,1,.36,1) backwards}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.post:hover{border-color:var(--acc-line);background:var(--panel-2);transform:translateX(5px)}
+.post.pinned{border-color:var(--warm-line);background:linear-gradient(140deg,var(--warm-dim),transparent 60%),var(--panel)}
+.post-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.post h3{font-size:16.5px;font-weight:600;line-height:1.5;transition:color .3s}
+.post:hover h3{color:var(--acc)}
+.post .excerpt{margin-top:6px;color:var(--txt-2);font-size:13.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.post-meta{margin-top:12px;display:flex;gap:15px;color:var(--txt-3);font-size:12.5px}
+.empty{padding:46px 0;text-align:center;color:var(--txt-3);font-size:14px}
+.pager{display:flex;justify-content:center;gap:8px;margin-top:26px}
+.pg-btn{min-width:36px;height:36px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--panel);
+  color:var(--txt-2);font-size:13.5px;font-family:inherit;cursor:pointer;display:grid;place-items:center;transition:all .3s}
+.pg-btn:hover:not(:disabled){border-color:var(--acc-line);color:var(--acc)}
+.pg-btn.active{background:var(--acc);border-color:var(--acc);color:var(--bg);font-weight:600}
+.pg-btn:disabled{opacity:.35;cursor:default}
+
+/* ============ 关于 / 页脚 ============ */
+.about{padding:64px 0 0}
+.about-card{border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:clamp(26px,5vw,44px);
+  display:grid;grid-template-columns:1.35fr 1fr;gap:38px;align-items:center;box-shadow:var(--shadow-sm)}
+.about-card h3{font-size:clamp(21px,3vw,28px);font-weight:700;margin-bottom:13px}
+.about-card h3 em{font-style:normal;color:var(--acc)}
+.about-card p{color:var(--txt-2);font-size:14px;margin-bottom:9px}
+.about-links{display:flex;flex-direction:column;gap:9px}
+.about-links a{display:flex;align-items:center;gap:12px;padding:13px 17px;border-radius:12px;
+  border:1px solid var(--line);background:transparent;color:var(--txt);text-decoration:none;font-size:14px;transition:all .3s}
+.about-links a:hover{border-color:var(--acc-line);background:var(--acc-dim);transform:translateX(4px)}
+.about-links a svg{color:var(--acc);flex-shrink:0}
+.about-links a .arr{margin-left:auto;color:var(--txt-3)}
+footer{margin-top:80px;border-top:1px solid var(--line-soft);padding:32px 0}
+.foot-in{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.foot-in p{color:var(--txt-3);font-size:12.5px}
+.foot-note{width:100%;font-size:11px!important;opacity:.65;margin-top:-4px}
+.to-top{position:fixed;right:24px;bottom:24px;z-index:90;width:42px;height:42px;border-radius:12px;border:1px solid var(--line);
+  background:var(--nav-bg);backdrop-filter:blur(10px);color:var(--txt-2);cursor:pointer;display:grid;place-items:center;
+  opacity:0;pointer-events:none;transition:all .4s}
+.to-top.show{opacity:1;pointer-events:auto}
+.to-top:hover{color:var(--acc);border-color:var(--acc-line)}
+
+/* ============ 弹窗 ============ */
+.mask{position:fixed;inset:0;z-index:200;background:rgba(8,9,11,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  display:grid;place-items:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s}
+html[data-theme="light"] .mask{background:rgba(29,32,35,.35)}
+.mask.open{opacity:1;pointer-events:auto}
+.box{width:min(640px,100%);max-height:86vh;overflow-y:auto;border-radius:18px;border:1px solid var(--line);
+  background:var(--panel);box-shadow:var(--shadow);transform:translateY(20px);transition:transform .4s cubic-bezier(.22,1,.36,1)}
+.mask.open .box{transform:none}
+.x{position:sticky;top:13px;margin-left:calc(100% - 48px);width:33px;height:33px;border-radius:50%;border:1px solid var(--line);
+  background:var(--panel);color:var(--txt);cursor:pointer;font-size:13px;transition:all .3s;z-index:3}
+.x:hover{border-color:var(--acc-line);color:var(--acc);transform:rotate(90deg)}
+.dl-body{padding:4px 27px 28px}
+.dl-body h3{font-size:21px;font-weight:700;margin:8px 0 11px;line-height:1.5}
+.dl-body .dl-desc{color:var(--txt-2);font-size:14px;margin:13px 0 19px}
+.dl-title{font-size:12px;letter-spacing:.2em;color:var(--txt-3);margin-bottom:9px}
+.dl-list{display:flex;flex-direction:column;gap:8px}
+.dl-list a{display:flex;align-items:center;gap:12px;padding:12px 15px;border-radius:11px;border:1px solid var(--line);
+  color:var(--txt);text-decoration:none;font-size:14px;transition:all .3s}
+.dl-list a:hover{border-color:var(--acc-line);background:var(--acc-dim)}
+.dl-list .ic{width:31px;height:31px;border-radius:9px;background:var(--acc);display:grid;place-items:center;color:var(--bg);flex-shrink:0}
+.dl-list .code{margin-left:auto;font-size:12px;color:var(--acc);background:var(--acc-dim);padding:3px 6px 3px 11px;border-radius:99px;display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+
+/* 赞助弹窗 */
+.sponsor{text-align:center}
+.sp-ic{width:52px;height:52px;margin:8px auto 14px;border-radius:16px;background:var(--acc-dim);color:var(--acc);display:grid;place-items:center}
+.qr-wrap{margin:20px auto 14px;width:220px;height:220px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--panel-2)}
+.qr-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.qr-ph{width:100%;height:100%;display:grid;place-content:center;gap:12px;justify-items:center;color:var(--txt-3);font-size:13px;line-height:1.7}
+.qr-ph small{font-size:11px;color:var(--txt-3);opacity:.8}
+.sp-note{font-size:12px;color:var(--txt-3)}
+
+/* 阅读器 */
+.reader{width:min(700px,100%)}
+.reader-body{padding:6px clamp(22px,5vw,48px) 42px}
+.reader-body .r-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}
+.reader-body h2{font-size:clamp(21px,3.4vw,27px);font-weight:700;line-height:1.45;margin-bottom:11px}
+.reader-meta{color:var(--txt-3);font-size:12.5px;display:flex;gap:15px;padding-bottom:19px;border-bottom:1px solid var(--line-soft);margin-bottom:23px}
+.reader-body h4{font-size:16.5px;font-weight:700;margin:24px 0 9px;padding-left:11px;border-left:3px solid var(--acc)}
+.reader-body p.p{color:var(--txt-2);font-size:15px;margin-bottom:13px}
+.reader-body p.p b{color:var(--txt);font-weight:600}
+.reader-body ul.rl{margin:0 0 13px 22px;color:var(--txt-2);font-size:15px}
+.reader-body ul.rl li{margin-bottom:5px}
+.reader-body .quote{border-left:3px solid var(--warm);background:var(--warm-dim);border-radius:0 10px 10px 0;
+  padding:11px 15px;color:var(--txt-2);font-size:13.5px;margin-bottom:13px}
+
+/* 搜索 */
+.search-mask{position:fixed;inset:0;z-index:210;background:rgba(8,9,11,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  opacity:0;pointer-events:none;transition:opacity .3s;overflow-y:auto;padding:12vh 20px 60px}
+html[data-theme="light"] .search-mask{background:rgba(246,245,241,.85)}
+.search-mask.open{opacity:1;pointer-events:auto}
+.search-box{max-width:600px;margin:0 auto}
+.search-box input{width:100%;background:none;border:none;outline:none;color:var(--txt);font-size:clamp(20px,3.4vw,27px);
+  font-family:inherit;font-weight:600;padding:12px 4px;border-bottom:2px solid var(--line);transition:border-color .3s}
+.search-box input:focus{border-color:var(--acc)}
+.search-box input::placeholder{color:var(--txt-3)}
+.search-hint{color:var(--txt-3);font-size:12.5px;margin:12px 4px 22px}
+.search-x{position:fixed;top:20px;right:22px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);
+  background:var(--panel);color:var(--txt);cursor:pointer;font-size:15px;transition:all .3s;z-index:5}
+.search-x:hover{border-color:var(--acc-line);color:var(--acc);transform:rotate(90deg)}
+.sr-item{display:flex;align-items:center;gap:13px;padding:12px 15px;border-radius:12px;border:1px solid var(--line-soft);
+  background:var(--panel);cursor:pointer;transition:all .3s;margin-bottom:8px}
+.sr-item:hover{border-color:var(--acc-line);background:var(--panel-2)}
+.sr-item .sq{width:35px;height:35px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;
+  background:var(--acc-dim);color:var(--acc)}
+.sr-item .st{flex:1;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr-item .sc{font-size:12px;color:var(--txt-3);flex-shrink:0}
+
+@media(max-width:740px){
+  .post-cover{width:92px;border-radius:9px}
+  .post{padding:17px 18px}
+  .nav-links{display:none;position:fixed;top:62px;left:14px;right:14px;flex-direction:column;padding:12px;
+    border-radius:16px;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow)}
+  .nav-links.show{display:flex}
+  .nav-links a{padding:12px 16px;font-size:15px}
+  .nav-burger{display:grid}
+  .about-card{grid-template-columns:1fr}
+  .hero{padding-top:106px}
+}
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+<div class="floaties" id="floaties"></div>
+<div class="grain"></div>
+
+<!-- 导航 -->
+<nav id="nav">
+  <div class="nav-in">
+    <a class="logo" href="#top">
+      <span class="logo-mark">鱼</span>
+      <span class="logo-name">鱼鹤资源窝</span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="#feed" onclick="setFilter('全部')">全部内容</a>
+      <a href="#feed" onclick="setFilter('游戏')">游戏</a>
+      <a href="#feed" onclick="setFilter('软件')">软件</a>
+      <a href="#about">关于</a>
+    </div>
+    <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" aria-label="切换主题">
+      <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
+      <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11Z"/></svg>
+    </button>
+    <button class="icon-btn" onclick="openSearch()" aria-label="搜索">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    </button>
+    <button class="icon-btn nav-burger" id="burger" aria-label="菜单">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Hero + 进站必看 -->
+<header class="hero" id="top">
+  <div class="wrap">
+    <h1>鱼鹤<em>资源窝</em></h1>
+    <div class="hero-sub">YUHE NEST · 免费资源分享</div>
+    <p class="hero-desc">游戏（MOD 整合包 / Galgame / 单机）与软件（看漫画 / 看番 / 工具），整理出来免费分享，取你所需。</p>
+    <div class="hero-search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--txt-3)"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="heroInput" type="text" placeholder="全名搜不到？试试只搜关键词…" onkeydown="if(event.key==='Enter')openSearch(this.value)">
+      <button onclick="openSearch(document.getElementById('heroInput').value)">搜索</button>
+    </div>
+    <div class="hero-meta">
+      <span><b id="statAll">0</b> 篇内容</span>
+      <span><b>100%</b> 免费分享</span>
+      <span><b id="statDay"></b> 最近更新</span>
+    </div>
+    <div class="must" id="must"></div>
+  </div>
+</header>
+
+<!-- 板块分区 -->
+<section class="doors">
+  <div class="wrap">
+    <div class="doors-row reveal" id="doors"></div>
+  </div>
+</section>
+
+<!-- 信息流 -->
+<section class="feed" id="feed">
+  <div class="wrap">
+    <div class="feed-head reveal">
+      <h2><small>Feed</small>最新发布</h2>
+      <button class="random-btn" onclick="randomPick()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/></svg>
+        随机逛逛
+      </button>
+    </div>
+    <div class="chips reveal" id="chips"></div>
+    <div id="tagBar" style="display:flex;gap:8px;align-items:center;margin-top:12px;min-height:0"></div>
+    <div class="stream" id="stream"></div>
+    <div class="pager" id="pager"></div>
+  </div>
+</section>
+
+<!-- 关于 -->
+<section class="about" id="about">
+  <div class="wrap">
+    <div class="about-card reveal">
+      <div>
+        <h3>关于<em> 鱼鹤资源窝</em></h3>
+        <p>一个个人维护的小站，把平时收集的游戏与软件资源整理出来，免费分享给需要的人。</p>
+        <p>链接失效或想要某类资源，欢迎通过交流群反馈。</p>
+      </div>
+      <div class="about-links">
+        <a href="#" onclick="return todo()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 21l2-5.6A8.5 8.5 0 1 1 21 11.5Z"/></svg>
+          <span>QQ 交流群（待补充）</span><span class="arr">→</span></a>
+        <a href="#" onclick="return todo()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+          <span>资源求档 / 失效反馈</span><span class="arr">→</span></a>
+        <a href="#feed" onclick="setFilter('教程')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 4.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+          <span>下载与解压教程</span><span class="arr">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-in">
+    <div class="logo">
+      <span class="logo-mark" style="width:26px;height:26px;font-size:12px;border-radius:8px">鱼</span>
+      <span class="logo-name" style="font-size:14px">鱼鹤资源窝</span>
+    </div>
+    <p>© 2026 鱼鹤资源窝 · 免费分享 · 仅供学习交流</p>
+    <p class="foot-note">站内资源均来源于网络收集，仅供学习交流使用，请于下载后 24 小时内删除 · 喜欢的话请支持正版</p>
+  </div>
+</footer>
+
+<button class="to-top" id="toTop" aria-label="回到顶部">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
+</button>
+
+<div class="mask" id="mask" onclick="if(event.target===this)closeOverlays()">
+  <div class="box" id="box"></div>
+</div>
+
+<div class="search-mask" id="searchMask">
+  <button class="search-x" onclick="closeOverlays()" aria-label="关闭搜索">✕</button>
+  <div class="search-box">
+    <input id="searchInput" type="text" placeholder="搜索全站内容…" autocomplete="off">
+    <div class="search-hint">按 ESC 关闭 · 试试「整合包」「漫画」「解压」</div>
+    <div id="searchResults"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+/* ================= 数据（示例占位，后续替换真实内容） ================= */
+/* 数据在 data.js 中（COVERS / POSTS），与页面分离：更新内容只改 data.js，浏览器可独立缓存 */
+
+/* 板块分区图标（SVG 线条图标） */
+const IC = {
+  game:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11a4.5 4.5 0 0 1 4.4 5.4l-.7 3.2a3 3 0 0 1-5.4 1.2L14.5 16h-5l-1.3 1.8a3 3 0 0 1-5.4-1.2l-.7-3.2A4.5 4.5 0 0 1 6.5 8Z"/><path d="M8 11v3M6.5 12.5h3"/><circle cx="16" cy="11.5" r=".9" fill="currentColor" stroke="none"/><circle cx="18" cy="13.5" r=".9" fill="currentColor" stroke="none"/></svg>',
+  app:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>',
+  book:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 4.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M9 7h6"/></svg>',
+  bell:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>',
+  mail:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>',
+  heart:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.3-9A5.2 5.2 0 0 1 12 6.6a5.2 5.2 0 0 1 9.3 4.9c-1.8 4.4-9.3 9-9.3 9Z"/></svg>'
+};
+const DOORS = [
+  {ic:"game",name:"游戏资源",filter:"游戏"},
+  {ic:"app",name:"软件工具",filter:"软件"},
+  {ic:"book",name:"教程攻略",filter:"教程"},
+  {ic:"bell",name:"公告动态",filter:"公告"},
+  {ic:"mail",name:"求档反馈",filter:"__ask"},
+  {ic:"heart",name:"投喂本站",filter:"__sponsor"}
+];
+const TAG_STYLE = {"必读":"warm","公告":"warm","热门":"warm","教程":"acc"};
+
+/* ================= 工具 ================= */
+const $ = id => document.getElementById(id);
+const byId = id => POSTS.find(p=>p.id===id);
+const esc = s => s.replace(/</g,"&lt;");
+const tagHTML = t => `<span class="tag ${TAG_STYLE[t]||""}" data-t="${t}">${t}</span>`;
+const MI = {
+  cal:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10.5h18"/></svg>',
+  box:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8m18 0-2.2-5H5.2L3 8m18 0H3"/><path d="M10 12.5h4"/></svg>',
+  clock:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>'
+};
+const metaHTML = p => `<span class="mi">${MI.cal}${p.date}</span>`
+  + (p.size?`<span class="mi">${MI.box}${p.size}</span>`:"")
+  + (p.read?`<span class="mi">${MI.clock}${p.read}</span>`:"");
+
+/* ================= 主题切换 ================= */
+function toggleTheme(){
+  const html = document.documentElement;
+  const next = html.dataset.theme === "dark" ? "light" : "dark";
+  html.dataset.theme = next;
+  try{ localStorage.setItem("yh-theme", next); }catch(e){}
+}
+try{
+  const saved = localStorage.getItem("yh-theme");
+  if(saved) document.documentElement.dataset.theme = saved;
+}catch(e){}
+
+/* ================= 渲染 ================= */
+/* 进站必看 */
+$("must").innerHTML = `
+  <div class="sec-label"><span class="bar"></span><h2>进站必看</h2><span>第一次来先读这几篇</span></div>
+  <div class="must-grid">
+    ${POSTS.filter(p=>p.must).map(p=>`
+      <div class="must-card" onclick="openPost(${p.id})">
+        <span class="tag warm">⚡置顶</span>
+        <h3>${p.title}</h3>
+        <p>${p.excerpt}</p>
+        <div class="m-meta">${metaHTML(p)}</div>
+      </div>`).join("")}
+  </div>`;
+
+/* 板块分区 */
+$("doors").innerHTML = DOORS.map(d=>{
+  const n = d.filter.startsWith("__") ? "" : POSTS.filter(p=>p.cat===d.filter).length;
+  return `<div class="door" onclick="doorGo('${d.filter}')">${IC[d.ic]}<span>${d.name}</span><small>${n?n+" 篇":""}</small></div>`;
+}).join("");
+function doorGo(f){
+  if(f==="__ask"){ todo(); return; }
+  if(f==="__sponsor"){ openSponsor(); return; }
+  setFilter(f);
+  document.getElementById("feed").scrollIntoView({behavior:"smooth"});
+}
+
+/* 赞助弹窗 */
+function openSponsor(){
+  $("box").className = "box";
+  $("box").innerHTML = `
+    <button class="x" onclick="closeOverlays()">✕</button>
+    <div class="dl-body sponsor">
+      <div class="sp-ic">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.3-9A5.2 5.2 0 0 1 12 6.6a5.2 5.2 0 0 1 9.3 4.9c-1.8 4.4-9.3 9-9.3 9Z"/></svg>
+      </div>
+      <h3 style="text-align:center">投喂站长</h3>
+      <p class="dl-desc" style="text-align:center;margin-top:8px">站内所有资源永远免费，不需要登录也没有任何门槛。<br>
+      服务器的开销都是自掏腰包——如果这个窝帮到了你，<br>可以投喂一杯咖啡，让我有动力继续搬资源。</p>
+      <div class="qr-wrap">
+        <img src="wechat-qr.png" alt="微信收款码" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+        <div class="qr-ph">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M14 20h1M18 18h3v3h-3z"/></svg>
+          <span>微信收款码<br><small>把 wechat-qr.png 放到网站同目录即自动显示</small></span>
+        </div>
+      </div>
+      <p class="sp-note">投喂纯属自愿 · 不投喂也能愉快使用全部资源</p>
+    </div>`;
+  showMask();
+}
+
+/* 信息流 */
+const CATS = ["全部","公告","教程","游戏","软件"];
+const PAGE_SIZE = 8;   /* 每页篇数，想改一页几篇动这里 */
+let curFilter = "全部";
+let tagFilter = null;
+let curPage = 1;
+$("chips").innerHTML = CATS.map(c=>`<button class="chip${c==="全部"?" active":""}" data-c="${c}" onclick="setFilter('${c}')">${c}</button>`).join("");
+function setFilter(c){
+  curFilter = c; tagFilter = null; curPage = 1;
+  document.querySelectorAll(".chip").forEach(b=>b.classList.toggle("active",b.dataset.c===c));
+  renderStream();
+}
+/* 标签点击：筛选同标签文章（捕获阶段拦截，避免触发卡片跳转） */
+document.addEventListener("click",e=>{
+  const t = e.target.closest(".tag[data-t]");
+  if(!t) return;
+  e.stopPropagation(); e.preventDefault();
+  filterByTag(t.dataset.t);
+},true);
+function filterByTag(t){
+  tagFilter = t; curPage = 1;
+  curFilter = "全部";
+  document.querySelectorAll(".chip").forEach(b=>b.classList.toggle("active",b.dataset.c==="全部"));
+  closeOverlays();
+  renderStream();
+  document.getElementById("feed").scrollIntoView({behavior:"smooth"});
+}
+function clearTagFilter(){ tagFilter = null; curPage = 1; renderStream(); }
+function renderStream(){
+  let list = tagFilter
+    ? POSTS.filter(p=>[p.cat,p.sub,...p.tags].includes(tagFilter))
+    : POSTS.filter(p=>curFilter==="全部"||p.cat===curFilter);
+  /* 置顶在前，其余按发布日期倒序 */
+  list = [...list].sort((a,b)=>(b.pin?1:0)-(a.pin?1:0) || b.date.localeCompare(a.date));
+  /* 分页：DOM 里始终只有一页的内容，数据再多也不卡 */
+  const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  if(curPage > pages) curPage = pages;
+  const pageItems = list.slice((curPage-1)*PAGE_SIZE, curPage*PAGE_SIZE);
+  $("tagBar").innerHTML = tagFilter
+    ? `<span class="tag acc" style="font-size:12.5px;padding:5px 13px">标签：${tagFilter}</span>
+       <button class="chip" onclick="clearTagFilter()">✕ 清除筛选</button>` : "";
+  $("stream").innerHTML = pageItems.length ? pageItems.map((p,i)=>`
+    <div class="post${p.pin?" pinned":""}" style="animation-delay:${i*45}ms" onclick="openPost(${p.id})">
+      <div class="post-main">
+        <div class="post-tags">
+          ${p.pin?'<span class="tag warm">⚡置顶</span>':""}
+          <span class="tag ${p.cat==="公告"?"warm":"acc"}" data-t="${p.cat}">${p.cat}</span>
+          ${p.sub?`<span class="tag" data-t="${p.sub}">${p.sub}</span>`:""}
+          ${p.tags.filter(t=>t!=="必读").map(tagHTML).join("")}
+        </div>
+        <h3>${p.title}</h3>
+        <div class="excerpt">${p.excerpt}</div>
+        <div class="post-meta">${metaHTML(p)}</div>
+      </div>
+      ${p.type==="resource"?`<div class="post-cover" style="background:${COVERS[p.cover]}"><span>${p.title.charAt(0)}</span></div>`:""}
+    </div>`).join("")
+  : `<div class="empty">没有找到相关内容</div>`;
+  /* 分页条 */
+  $("pager").innerHTML = pages>1 ? `
+    <button class="pg-btn" ${curPage===1?"disabled":""} onclick="goPage(${curPage-1})" aria-label="上一页">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m14 6-6 6 6 6"/></svg>
+    </button>
+    ${Array.from({length:pages},(_,i)=>`<button class="pg-btn${i+1===curPage?" active":""}" onclick="goPage(${i+1})">${i+1}</button>`).join("")}
+    <button class="pg-btn" ${curPage===pages?"disabled":""} onclick="goPage(${curPage+1})" aria-label="下一页">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m10 6 6 6-6 6"/></svg>
+    </button>` : "";
+}
+function goPage(n){
+  curPage = n;
+  renderStream();
+  document.getElementById("feed").scrollIntoView({behavior:"smooth"});
+}
+renderStream();
+$("statAll").textContent = POSTS.length;
+$("statDay").textContent = "10-13";
+
+function randomPick(){
+  const pool = POSTS.filter(p=>p.type==="resource");
+  openPost(pool[Math.floor(Math.random()*pool.length)].id);
+}
+
+/* ================= 打开内容 ================= */
+const DL_IC = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0 5-5m-5 5-5-5M4 20h16"/></svg>';
+const DOC_IC = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v6h6"/></svg>';
+function openPost(id){
+  const p = byId(id);
+  if(p.type==="article") openReader(p); else openResource(p);
+}
+function openResource(p){
+  $("box").className = "box cover-mode";
+  $("box").innerHTML = `
+    <button class="x" onclick="closeOverlays()">✕</button>
+    <div class="m-cover" style="background:${COVERS[p.cover]}"><span>${p.title.charAt(0)}</span></div>
+    <div class="dl-body">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="tag ${p.cat==="公告"?"warm":"acc"}" data-t="${p.cat}">${p.cat}</span>${p.sub?`<span class="tag" data-t="${p.sub}">${p.sub}</span>`:""}${p.tags.map(tagHTML).join("")}
+      </div>
+      <h3>${p.title}</h3>
+      <div class="post-meta" style="margin:0">${metaHTML(p)}</div>
+      <p class="dl-desc">${p.excerpt}</p>
+      <div class="dl-title">下载链接</div>
+      <div class="dl-list">
+        ${p.links.map(l=>`<a href="#" onclick="return todo()"><span class="ic">${DL_IC}</span><span>${l[0]}</span><span class="code">解压码 ${l[1]}<button class="copy-btn" title="复制解压码" onclick="event.preventDefault();event.stopPropagation();copyCode(this,'${l[1]}')">${COPY_IC}</button></span></a>`).join("")}
+      </div>
+    </div>`;
+  showMask();
+}
+const COPY_IC = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const CHECK_IC = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 12.5 5 5 10-11"/></svg>';
+function copyCode(btn,code){
+  const done = ()=>{
+    btn.innerHTML = CHECK_IC;
+    setTimeout(()=>btn.innerHTML = COPY_IC,1400);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(done).catch(()=>fallbackCopy(code,done));
+  }else fallbackCopy(code,done);
+}
+function fallbackCopy(text,done){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(ta); done();
+}
+function openReader(p){
+  $("box").className = "box reader";
+  const blocks = (p.content||[]).map(b=>{
+    if(b[0]==="h4") return `<h4>${b[1]}</h4>`;
+    if(b[0]==="ul") return `<ul class="rl">${b.slice(1).map(li=>`<li>${li}</li>`).join("")}</ul>`;
+    if(b[0]==="quote") return `<div class="quote">${b[1]}</div>`;
+    return `<p class="p">${b[1]}</p>`;
+  }).join("");
+  $("box").innerHTML = `
+    <button class="x" onclick="closeOverlays()">✕</button>
+    <div class="reader-body">
+      <div class="r-tags">${p.pin?'<span class="tag warm">⚡置顶</span>':""}<span class="tag ${p.cat==="公告"?"warm":"acc"}" data-t="${p.cat}">${p.cat}</span>${p.tags.map(tagHTML).join("")}</div>
+      <h2>${p.title}</h2>
+      <div class="reader-meta">${metaHTML(p)}</div>
+      ${blocks}
+    </div>`;
+  showMask();
+}
+/* 浮层接入浏览器历史：打开时压入一条历史，手机返回键先关浮层而不是退出网页 */
+let overlayPushed = false;
+function pushOverlay(){
+  if(overlayPushed) return;
+  try{ history.pushState({yhOverlay:true},""); overlayPushed = true; }catch(e){}
+}
+addEventListener("popstate",()=>{
+  if(overlayPushed){ overlayPushed = false; closeModal(); closeSearch(); }
+});
+function closeOverlays(){
+  const was = overlayPushed;
+  closeModal(); closeSearch();
+  if(was){ overlayPushed = false; try{ history.back(); }catch(e){} }
+}
+/* 从搜索结果进入文章：关掉搜索但不 history.back()，
+   避免异步 popstate 把刚打开的弹窗历史记录弹掉（手机端点击无反应的元凶） */
+function openFromSearch(id){
+  closeModal(); closeSearch();
+  overlayPushed = false;
+  openPost(id);
+}
+function showMask(){ $("mask").classList.add("open"); document.body.style.overflow="hidden"; $("box").scrollTop=0; pushOverlay(); }
+function closeModal(){ $("mask").classList.remove("open"); document.body.style.overflow=""; }
+function todo(){ alert("样品演示：这里将放置真实链接，内容确定后统一替换。"); return false; }
+
+/* ================= 搜索 ================= */
+function openSearch(kw){
+  $("searchMask").classList.add("open"); document.body.style.overflow="hidden";
+  pushOverlay();
+  const inp = $("searchInput"); inp.value = kw||""; doSearch(inp.value);
+  setTimeout(()=>inp.focus(),80);
+}
+function closeSearch(){ $("searchMask").classList.remove("open"); document.body.style.overflow=""; }
+function doSearch(kw){
+  kw = kw.trim().toLowerCase();
+  const box = $("searchResults");
+  if(!kw){ box.innerHTML = `<div class="empty">输入关键词开始搜索</div>`; return; }
+  const hits = POSTS.filter(p=>(p.title+p.excerpt+p.cat+(p.sub||"")).toLowerCase().includes(kw));
+  box.innerHTML = hits.length
+    ? hits.map(p=>`<div class="sr-item" onclick="openFromSearch(${p.id})">
+        <span class="sq">${p.type==="article"?DOC_IC:DL_IC}</span>
+        <span class="st">${p.title}</span><span class="sc">${p.cat}${p.sub?" · "+p.sub:""}</span></div>`).join("")
+    : `<div class="empty">没有找到「${esc(kw)}」，换个关键词试试</div>`;
+}
+$("searchInput").addEventListener("input",e=>doSearch(e.target.value));
+$("searchMask").addEventListener("click",e=>{ if(e.target.id==="searchMask") closeOverlays(); });
+
+/* ================= 交互细节 ================= */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ closeOverlays(); }
+  if(e.key==="/"&&!$("searchMask").classList.contains("open")){ e.preventDefault(); openSearch(); }
+});
+const nav=$("nav"),toTop=$("toTop");
+addEventListener("scroll",()=>{
+  nav.classList.toggle("scrolled",scrollY>30);
+  toTop.classList.toggle("show",scrollY>500);
+},{passive:true});
+toTop.addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"}));
+$("burger").onclick=()=>$("navLinks").classList.toggle("show");
+$("navLinks").querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>$("navLinks").classList.remove("show")));
+const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);} }),{threshold:.1});
+document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
+
+/* 上浮光点（生成一次，纯 CSS 动画，无 JS 逐帧开销） */
+(function(){
+  const box=$("floaties"),N=14;
+  let html="";
+  for(let i=0;i<N;i++){
+    const size=(3+Math.random()*7).toFixed(1);
+    const left=(Math.random()*96).toFixed(1);
+    const dur=(16+Math.random()*20).toFixed(1);
+    const delay=(-Math.random()*36).toFixed(1);
+    const sway=((Math.random()*120-60)).toFixed(0);
+    const o=(0.25+Math.random()*0.45).toFixed(2);
+    const warm=Math.random()<0.3;
+    html+=`<i style="left:${left}%;width:${size}px;height:${size}px;--sway:${sway}px;--o:${o};
+      animation-duration:${dur}s;animation-delay:${delay}s;
+      background:${warm?"var(--warm)":"var(--acc)"}"></i>`;
+  }
+  box.innerHTML=html;
+})();
+</script>
+</body>
+</html>
